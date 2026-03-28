@@ -1,7 +1,5 @@
 # Next.js UI Build Plan (MVP)
 
-Target implementation: pure Next.js + Supabase, with landing-page visual direction inspired by https://global-id-pro.lovable.app/.
-
 ## Build Sequence (minimal risk)
 
 1. **Auth + role capture**

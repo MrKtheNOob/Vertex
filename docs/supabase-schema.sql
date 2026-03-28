@@ -1,4 +1,4 @@
--- Zentra MVP schema for Supabase/Postgres
+-- Vertex MVP schema for Supabase/Postgres
 
 -- Enable extension for UUID generation (already available on Supabase, kept explicit for portability)
 create extension if not exists pgcrypto;

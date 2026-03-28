@@ -1,10 +1,8 @@
-# ZENTRA — MVP Product Spec
+# ZENTRA / VERTEX — MVP Product Spec
 
 ## 1) Product Summary
 
 A platform where students create scored profiles and companies discover top candidates through ranking and simple matching.
-
-Reference landing direction: https://global-id-pro.lovable.app/
 
 ## 2) Core MVP Goals
 
@@ -92,7 +90,7 @@ Use lightweight keyword extraction and skill overlap only. Avoid real ML model w
 
 Public:
 
-- `/` (landing inspired by reference site)
+- `/` (landing)
 
 Student:
 
