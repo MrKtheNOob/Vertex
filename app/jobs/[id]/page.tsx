@@ -10,21 +10,22 @@ export default function JobCandidatesPage() {
   const { id } = useParams<{ id: string }>();
 
   const { job, ranked } = useMemo(() => {
-    const job = getJob(id);
+    const selectedJob = getJob(id);
     const students = getStudents();
-    const ranked = students
+
+    const sorted = students
       .map((student) => ({
         student,
-        matchScore: job ? calculateMatchScore(student, job.requiredSkills) : 0
+        matchScore: selectedJob ? calculateMatchScore(student, selectedJob.requiredSkills) : 0,
       }))
       .sort((a, b) => b.matchScore - a.matchScore);
 
-    return { job, ranked };
+    return { job: selectedJob, ranked: sorted };
   }, [id]);
 
   if (!job) {
     return (
-      <main className="card">
+      <main className="panel" style={{ maxWidth: 620, margin: '0 auto' }}>
         <h1 className="h2">Job not found</h1>
         <Link href="/jobs" className="btn alt">Back to Jobs</Link>
       </main>
@@ -33,12 +34,14 @@ export default function JobCandidatesPage() {
 
   return (
     <main className="grid">
-      <section className="card">
-        <h1 className="h2">{job.title}</h1>
+      <section className="panel">
+        <p className="badge">Candidate Matching</p>
+        <h1 className="h2" style={{ marginTop: 10 }}>{job.title}</h1>
         <p className="small">{job.companyName} · Required skills: {job.requiredSkills.join(', ')}</p>
       </section>
-      <section className="card">
-        <h2 className="h2">Matched Candidates</h2>
+
+      <section className="panel">
+        <h2 className="h2">Top Candidates</h2>
         <table className="table">
           <thead><tr><th>Student</th><th>Vertex Score</th><th>Match Score</th><th>Label</th></tr></thead>
           <tbody>

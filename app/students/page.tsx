@@ -16,12 +16,18 @@ export default function StudentsPage() {
 
   return (
     <main className="grid">
-      <section className="card row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
+      <section className="panel row" style={{ justifyContent: 'space-between', flexWrap: 'wrap' }}>
         <div>
           <h1 className="h2">Student Discovery</h1>
-          <p className="small">Sorted by highest score. Filter by skill keyword for targeted discovery.</p>
+          <p className="small">Highest score first. Filter by skill for targeted shortlisting.</p>
         </div>
-        <input className="input" style={{ maxWidth: 320, marginBottom: 0 }} placeholder="Filter by skill: react" value={filterSkill} onChange={(e) => setFilterSkill(e.target.value)} />
+        <input
+          className="input"
+          style={{ maxWidth: 320, marginBottom: 0 }}
+          placeholder="Filter by skill: react"
+          value={filterSkill}
+          onChange={(e) => setFilterSkill(e.target.value)}
+        />
       </section>
 
       {filtered.map((student, index) => (

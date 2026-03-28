@@ -7,21 +7,33 @@ export const metadata = {
   description: 'Student talent ranking MVP',
 };
 
+const nav = [
+  { href: '/signup', label: 'Sign Up' },
+  { href: '/profile/edit', label: 'Profile' },
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/students', label: 'Students' },
+  { href: '/jobs', label: 'Jobs' },
+];
+
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
       <body>
-        <div className="container">
-          <nav className="top">
-            <Link href="/" className="row"><strong>Vertex</strong><span className="small">MVP</span></Link>
-            <div className="links small">
-              <Link href="/signup">Sign Up</Link>
-              <Link href="/profile/edit">Profile</Link>
-              <Link href="/dashboard">Dashboard</Link>
-              <Link href="/students">Students</Link>
-              <Link href="/jobs">Jobs</Link>
-            </div>
-          </nav>
+        <div className="app-shell">
+          <header className="topbar">
+            <Link href="/" className="brand">
+              <span className="brand-dot" />
+              Vertex
+              <span className="small">MVP</span>
+            </Link>
+            <nav className="top-links">
+              {nav.map((item) => (
+                <Link key={item.href} href={item.href} className="nav-pill">
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </header>
           {children}
         </div>
       </body>

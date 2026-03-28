@@ -11,16 +11,20 @@ export default function SignupPage() {
   const router = useRouter();
 
   return (
-    <main className="card" style={{ maxWidth: 620 }}>
-      <h1 className="h2">Create account</h1>
-      <p className="small">Use email + role capture for MVP auth flow.</p>
+    <main className="panel" style={{ maxWidth: 620, margin: '0 auto' }}>
+      <p className="badge">Get Started</p>
+      <h1 className="h2" style={{ marginTop: 12 }}>Create your Vertex account</h1>
+      <p className="small">Role capture for MVP now. In next step we wire Supabase email/password auth.</p>
+
       <label className="label">Email</label>
       <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@school.edu" />
+
       <label className="label">Role</label>
       <select className="select" value={role} onChange={(e) => setRole(e.target.value as Role)}>
         <option value="student">Student</option>
         <option value="company">Company</option>
       </select>
+
       <button
         className="btn"
         onClick={() => {
