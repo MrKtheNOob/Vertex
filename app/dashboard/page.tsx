@@ -9,14 +9,41 @@ import type { StudentProfile } from '@/lib/types';
 
 export default function DashboardPage() {
   const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    setProfile(getProfile());
+    let mounted = true;
+    const load = async () => {
+      try {
+        const next = await getProfile();
+        if (!mounted) return;
+        setProfile(next);
+      } catch (err) {
+        if (!mounted) return;
+        setError(err instanceof Error ? err.message : 'Unable to load dashboard');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
   }, []);
+
+  if (loading) {
+    return (
+      <main className="panel" style={{ maxWidth: 620, margin: '0 auto' }}>
+        <p className="small">Loading dashboard...</p>
+      </main>
+    );
+  }
 
   if (!profile) {
     return (
       <main className="panel" style={{ maxWidth: 620, margin: '0 auto' }}>
+        {error && <p className="small" style={{ color: '#ffb8b8' }}>{error}</p>}
         <h1 className="h2">No profile yet</h1>
         <p className="small">Create your student profile first to see your live score.</p>
         <Link href="/profile/edit" className="btn" style={{ display: 'inline-block' }}>Go to Profile</Link>

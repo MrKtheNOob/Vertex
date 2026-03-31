@@ -25,3 +25,15 @@ A complete demo should support:
 2. Student sees a score on dashboard.
 3. Company browses ranked students with skill filters.
 4. Company posts job and sees matched candidates.
+
+## Local Setup (Supabase)
+
+1. Copy `.env.example` to `.env.local`.
+2. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` from your Supabase project.
+3. Run the SQL in `docs/supabase-schema.sql` in Supabase.
+4. Start the app:
+
+```bash
+npm install
+npm run dev
+```

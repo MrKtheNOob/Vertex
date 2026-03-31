@@ -12,18 +12,40 @@ export default function ProfileEditPage() {
   const [education, setEducation] = useState('');
   const [skills, setSkills] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const user = getUser();
-    const profile = getProfile();
-    if (user) setEmail(user.email);
-    if (profile) {
-      setName(profile.name);
-      setEducation(profile.education || '');
-      setSkills(profile.skills.join(', '));
-      setProjects(profile.projects);
-    }
+    let mounted = true;
+    const load = async () => {
+      try {
+        const [user, profile] = await Promise.all([getUser(), getProfile()]);
+        if (!mounted) return;
+        if (user) setEmail(user.email);
+        if (profile) {
+          setName(profile.name);
+          setEducation(profile.education || '');
+          setSkills(profile.skills.join(', '));
+          setProjects(profile.projects);
+        }
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
   }, []);
+
+  if (loading) {
+    return (
+      <main className="panel" style={{ maxWidth: 620, margin: '0 auto' }}>
+        <p className="small">Loading profile...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="grid" style={{ maxWidth: 940, margin: '0 auto' }}>
@@ -47,6 +69,7 @@ export default function ProfileEditPage() {
 
         <label className="label">Skills (comma-separated)</label>
         <input className="input" value={skills} onChange={(e) => setSkills(e.target.value)} placeholder="react, sql, python" />
+        {error && <p className="small" style={{ color: '#ffb8b8' }}>{error}</p>}
       </section>
 
       <section className="panel">
@@ -85,13 +108,22 @@ export default function ProfileEditPage() {
 
         <button
           className="btn"
-          onClick={() => {
+          disabled={saving}
+          onClick={async () => {
             const normalizedSkills = skills.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
-            saveProfile({ userId: 'current', name, email, education, skills: normalizedSkills, projects: projects.filter((p) => p.title) });
-            router.push('/dashboard');
+            setSaving(true);
+            setError('');
+            try {
+              await saveProfile({ userId: 'current', name, email, education, skills: normalizedSkills, projects: projects.filter((p) => p.title) });
+              router.push('/dashboard');
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'Unable to save profile');
+            } finally {
+              setSaving(false);
+            }
           }}
         >
-          Save Profile & Refresh Score
+          {saving ? 'Saving...' : 'Save Profile & Refresh Score'}
         </button>
       </section>
     </main>
