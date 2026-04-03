@@ -151,9 +151,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
-          <div className="sidebar-foot">
-            <p className="small">SaaS Demo Shell</p>
-          </div>
+         
         </aside>
       )}
 
