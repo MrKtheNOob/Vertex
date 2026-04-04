@@ -45,7 +45,10 @@ function profileFromRow(row: StudentProfileRow, email: string, skills: string[],
 async function getAuthSessionUser() {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase.auth.getUser();
-  if (error) throw error;
+  if (error) {
+    if (error.name === 'AuthSessionMissingError') return null;
+    throw error;
+  }
   return data.user;
 }
 
