@@ -33,7 +33,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit}>
         <p className="badge">Welcome Back</p>
         <h1 className="h2" style={{ marginTop: 12 }}>Log in to your Vertex workspace</h1>
-        <p className="small">Use your email and password to continue.</p>
+        <p className="small">Use your email and password for instant access.</p>
 
         <label className="label">Email</label>
         <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@company.com" />

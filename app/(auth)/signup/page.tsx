@@ -34,7 +34,7 @@ export default function SignupPage() {
       <form onSubmit={handleSubmit}>
         <p className="badge">Get Started</p>
         <h1 className="h2" style={{ marginTop: 12 }}>Create your Vertex account</h1>
-        <p className="small">Create a secure account with role-based workspace access.</p>
+        <p className="small">Fast signup with immediate access to your workspace.</p>
 
         <label className="label">Email</label>
         <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@school.edu" />

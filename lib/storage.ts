@@ -62,14 +62,25 @@ export async function signUpUser(email: string, password: string, role: Role) {
   if (error) throw error;
   if (!data.user) throw new Error('Unable to create user');
 
-  // If email confirmation is required, session may be null here and RLS blocks insert.
-  // In that case we defer users-row upsert to first authenticated session.
-  if (data.session) {
-    const { error: userError } = await supabase
-      .from('users')
-      .upsert({ id: data.user.id, role, email }, { onConflict: 'id' });
-    if (userError) throw userError;
+  // Friction-free path: if signUp did not create a session, attempt immediate sign-in.
+  // When confirm-email is enabled in Supabase, this will fail with email-not-confirmed.
+  if (!data.session) {
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    if (signInError) {
+      const message = signInError.message.toLowerCase();
+      if (message.includes('email not confirmed') || message.includes('email not verified')) {
+        throw new Error(
+          'Email confirmation is enabled in Supabase. Disable "Confirm email" in Auth > Providers > Email for faster onboarding.'
+        );
+      }
+      throw signInError;
+    }
   }
+
+  const { error: userError } = await supabase
+    .from('users')
+    .upsert({ id: data.user.id, role, email }, { onConflict: 'id' });
+  if (userError) throw userError;
 }
 
 export async function signInUser(email: string, password: string) {
