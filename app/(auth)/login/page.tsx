@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser, signInUser } from '@/lib/storage';
+import { signInUser } from '@/lib/storage';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -19,8 +19,8 @@ export default function LoginPage() {
     setError('');
     try {
       await signInUser(email.trim(), password);
-      const user = await getUser();
-      router.push(user?.role === 'student' ? '/dashboard' : '/students');
+      router.replace('/students');
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to login');
     } finally {

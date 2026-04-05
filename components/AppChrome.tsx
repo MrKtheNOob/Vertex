@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
+import { getSupabaseClient } from '@/lib/supabase';
 import { getProfile, getUser, logoutUser } from '@/lib/storage';
 import type { ReactNode } from 'react';
 import type { Role } from '@/lib/types';
@@ -11,6 +12,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const isLanding = pathname === '/';
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [role, setRole] = useState<Role | null>(null);
   const [hasProfile, setHasProfile] = useState(false);
   const [email, setEmail] = useState('');
@@ -18,17 +20,30 @@ export default function AppChrome({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    const supabase = getSupabaseClient();
 
     const loadSession = async () => {
       try {
         const user = await getUser();
+        if (!mounted) return;
+
+        if (!user) {
+          setIsAuthenticated(false);
+          setRole(null);
+          setEmail('');
+          setHasProfile(false);
+          return;
+        }
+
         const profile = await getProfile();
         if (!mounted) return;
-        setRole(user?.role ?? null);
-        setEmail(user?.email ?? '');
+        setIsAuthenticated(true);
+        setRole(user.role);
+        setEmail(user.email);
         setHasProfile(Boolean(profile));
       } catch {
         if (!mounted) return;
+        setIsAuthenticated(false);
         setRole(null);
         setEmail('');
         setHasProfile(false);
@@ -38,8 +53,13 @@ export default function AppChrome({ children }: { children: ReactNode }) {
     };
 
     loadSession();
+    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
+      loadSession();
+    });
+
     return () => {
       mounted = false;
+      authListener.subscription.unsubscribe();
     };
   }, []);
 
@@ -52,7 +72,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
     const isAllowedForStudentNoProfile = pathname === '/signup' || pathname === '/login' || pathname === '/profile/edit';
     const isAllowedForCompany = pathname === '/signup' || pathname === '/students' || isJobsRoute;
 
-    if (!role && !isAllowedForGuest) {
+    if (!isAuthenticated && !isAllowedForGuest) {
       router.replace('/signup');
       return;
     }
@@ -70,10 +90,10 @@ export default function AppChrome({ children }: { children: ReactNode }) {
     if (role === 'company' && !(isAllowedForCompany || isStudentsRoute)) {
       router.replace('/students');
     }
-  }, [hasProfile, hydrated, isLanding, pathname, role, router]);
+  }, [hasProfile, hydrated, isAuthenticated, isLanding, pathname, role, router]);
 
   const journey = useMemo(() => {
-    if (!role) {
+    if (!isAuthenticated) {
       return {
         step: 'Step 1 of 3',
         title: 'Create your account to start using Vertex.',
@@ -102,10 +122,10 @@ export default function AppChrome({ children }: { children: ReactNode }) {
       title: 'Your workspace is ready. Discover, rank, and match talent.',
       canAccess: () => true
     };
-  }, [hasProfile, role]);
+  }, [hasProfile, isAuthenticated, role]);
 
   const sidebarNav = useMemo(() => {
-    if (!role) return [];
+    if (!isAuthenticated || !role) return [];
 
     if (role === 'company') {
       return [
@@ -120,7 +140,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
       { href: '/students', label: 'Students' },
       { href: '/jobs', label: 'Jobs' },
     ];
-  }, [role]);
+  }, [isAuthenticated, role]);
 
   return (
     <div className={isLanding ? 'shell shell-landing' : 'shell'}>
@@ -160,7 +180,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
           <header className="topbar">
             <div className="search-faux">Search students, jobs, skills</div>
             <div className="row">
-              {role ? (
+              {isAuthenticated ? (
                 <>
                   <span className="small">{email || 'Signed In'}</span>
                   <button
