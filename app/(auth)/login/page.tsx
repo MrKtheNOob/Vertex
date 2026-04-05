@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { signInUser } from '@/lib/storage';
+import { getProfile, getUser, signInUser } from '@/lib/storage';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,6 +12,19 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
+  const resolvePostAuthRoute = async () => {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
+      const user = await getUser();
+      if (user) {
+        if (user.role === 'company') return '/students';
+        const profile = await getProfile();
+        return profile ? '/dashboard' : '/profile/edit';
+      }
+      await new Promise((resolve) => setTimeout(resolve, 120));
+    }
+    return '/login';
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!email || !password || loading) return;
@@ -19,7 +32,8 @@ export default function LoginPage() {
     setError('');
     try {
       await signInUser(email.trim(), password);
-      router.replace('/students');
+      const destination = await resolvePostAuthRoute();
+      router.replace(destination);
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to login');
