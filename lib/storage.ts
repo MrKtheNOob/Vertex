@@ -52,6 +52,14 @@ async function getAuthSessionUser() {
   return data.user;
 }
 
+async function syncUserRow(userId: string, email: string, role: Role) {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase
+    .from('users')
+    .upsert({ id: userId, role, email }, { onConflict: 'id' });
+  return error;
+}
+
 export async function signUpUser(email: string, password: string, role: Role) {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase.auth.signUp({
@@ -63,7 +71,6 @@ export async function signUpUser(email: string, password: string, role: Role) {
   if (!data.user) throw new Error('Unable to create user');
 
   // Friction-free path: if signUp did not create a session, attempt immediate sign-in.
-  // When confirm-email is enabled in Supabase, this will fail with email-not-confirmed.
   if (!data.session) {
     const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
     if (signInError) {
@@ -77,10 +84,8 @@ export async function signUpUser(email: string, password: string, role: Role) {
     }
   }
 
-  const { error: userError } = await supabase
-    .from('users')
-    .upsert({ id: data.user.id, role, email }, { onConflict: 'id' });
-  if (userError) throw userError;
+  // Best effort: do not block signup if users-row sync is briefly blocked by RLS/session timing.
+  await syncUserRow(data.user.id, email, role);
 }
 
 export async function signInUser(email: string, password: string) {
@@ -105,10 +110,7 @@ export async function getUser(): Promise<AuthUser | null> {
     const metaRole = authUser.user_metadata?.role;
     const fallbackRole: Role = metaRole === 'company' ? 'company' : 'student';
     const fallbackEmail = authUser.email || '';
-    const { error: upsertError } = await supabase
-      .from('users')
-      .upsert({ id: authUser.id, role: fallbackRole, email: fallbackEmail }, { onConflict: 'id' });
-    if (upsertError) throw upsertError;
+    await syncUserRow(authUser.id, fallbackEmail, fallbackRole);
     return { id: authUser.id, email: fallbackEmail, role: fallbackRole };
   }
 
